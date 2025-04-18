@@ -1,4 +1,4 @@
-Collecte des informations sur l’espace de travail# README - Générateur de CV et Lettre de Motivation
+# README - Générateur de CV et Lettre de Motivation
 
 Ce projet contient deux programmes Python qui permettent de générer facilement un CV et une lettre de motivation au format DOCX à partir de fichiers CSV.
 
@@ -7,8 +7,8 @@ Ce projet contient deux programmes Python qui permettent de générer facilement
 - cv.py - Programme pour générer un CV
 - cover-letter.py - Programme pour générer une lettre de motivation
 - docx_utils.py - Fonctions utilitaires pour la mise en forme des documents
-- cv_data.csv - Exemple de fichier CSV pour le CV
-- cover_letter.csv - Exemple de fichier CSV pour la lettre de motivation
+- À fournir -> cv_data.csv - Exemple de fichier CSV pour le CV
+- À fournir -> cover_letter.csv - Exemple de fichier CSV pour la lettre de motivation
 
 ## Prérequis
 
@@ -23,13 +23,16 @@ pip install python-docx
 
 ## Utilisation
 
+Attention la mise en page n'est pas encore parfaite, il faudra encore certainement l'ajuster dans un logiciel de traitement de texte.
+Le code est encore en phase de développement et peut nécessiter des ajustements pour répondre à vos besoins spécifiques.
+
 ### Générer un CV
 
 1. Créez un fichier CSV avec les données de votre CV en suivant le format défini dans cv_data.csv.
 2. Exécutez la commande suivante :
 
 ```bash
-python cv.py chemin/vers/votre_cv.csv
+python cv.py chemin/vers/votre_cv.csv [debutant|accompli]
 ```
 
 Le CV généré sera sauvegardé sous le nom `cv-test.docx` dans le répertoire courant.
@@ -83,6 +86,7 @@ personal,Nom,Prénom,"Jean Dupont",,
 personal,Adresse,,"123 Rue des Développeurs, 75000 Paris",,
 personal,Email,,"<jean.dupont@example.com>",,
 personal,Tel,,"06 12 34 56 78",,
+objectives,Debutant,,""Recherche experience significative en développement logiciel"",,
 experience,Lead Developer,"TechSolutions, Paris","Développement d'applications web, gestion d'une équipe de 5 développeurs, mise en place de méthodologies agiles",2020,2025
 experience,Développeur Backend,"WebInnovate","Conception et maintenance de microservices en Java et Spring Boot",2017,2020
 experience,Développeur Junior,"StartupLab","Développement full stack sur diverses applications clients",2015,2017
@@ -111,3 +115,8 @@ cover_letter,Corps,"Je me permets de vous adresser ma candidature pour le poste 
 cover_letter,Formule de politesse,"Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées."
 cover_letter,Signature,"Jean Dupont"
 ```
+
+## Backlog
+
+- [ ] Améliorer la mise en page du CV et de la lettre de motivation
+- [ ] Ajouter des fonctionnalités pour personnaliser davantage le style (polices, couleurs, etc.)

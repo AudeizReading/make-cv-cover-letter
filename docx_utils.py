@@ -15,7 +15,35 @@ def trim_value(value: str) -> str:
     :param value: La valeur à nettoyer
     :return: La valeur nettoyée
     """
-    return value.strip().strip('"')
+    if isinstance(value, str):
+        return value.strip().strip('"')
+    elif isinstance(value, list):
+        # Appliquer le trim à chacun des éléments et les joindre par une virgule
+        return ", ".join(
+            [
+                v.strip().strip('"') if isinstance(v, str) else str(v)
+                for v in value
+            ]
+        )
+    else:
+        return str(value)
+
+
+def compute_duration(start: str, end: str) -> str:
+    """
+    Calcule la durée (en années) entre une date de début et de fin si possible.
+
+    :param start: Date de début (ex: "2019")
+    :param end: Date de fin (ex: "2021")
+    :return: Chaîne de caractères du type ", 2 ans" ou une chaîne vide en cas d'impossibilité
+    """
+    try:
+        start_year = int(start)
+        end_year = int(end)
+        duration = end_year - start_year
+        return f", {duration} ans" if duration > 0 else ""
+    except ValueError:
+        return ""
 
 
 def add_skills_table(
@@ -53,7 +81,7 @@ def add_custom_heading(
     text: str,
     level: int = 1,
     font_size: Pt = Pt(24),
-    color: RGBColor = RGBColor(0xC0, 0x00, 0x00),
+    color: RGBColor = RGBColor(0x00, 0x00, 0x00),
     alignment: int = WD_ALIGN_PARAGRAPH.CENTER,
 ) -> None:
     """

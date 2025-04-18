@@ -1,1 +1,4 @@
 *.csv
+*.docx
+env*
+__pycache__*

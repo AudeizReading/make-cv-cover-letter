@@ -8,15 +8,18 @@ from docx_utils import (
     add_custom_paragraph,
     add_styled_run,
     set_paragraph_format,
+    trim_value,
+    compute_duration,
 )
 
 
-def generate_cv(csv_file, output_file):
+def generate_cv(csv_file, output_file, cv_type: str = "debutant"):
     """
     Lit le CSV de données de CV et génère un document RTF.
     """
     # Dictionnaires pour chaque section
     personal = []
+    objectives = []
     experiences = []
     education = []
     skills = []
@@ -26,7 +29,8 @@ def generate_cv(csv_file, output_file):
     with open(csv_file, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            section = row["section"].strip().lower()
+            row = {key: trim_value(value) for key, value in row.items()}
+            section = row.get("section", "").lower()
             if section == "personal":
                 personal.append(row)
             elif section == "experience":
@@ -36,18 +40,18 @@ def generate_cv(csv_file, output_file):
             elif section == "skills":
                 skills.append(row)
             elif section == "title":
-                title = row["description"].strip()
+                title = row.get("description", "").strip()
+            elif section == "objectives":
+                objectives.append(row)
 
-    # Construction du document RTF (structure minimale)
-    # rtf = r"{\rtf1\ansi" + "\n"
     # Créer un document DOCX
     doc = Document()
 
     # Informations personnelles
     if personal:
-        # doc.add_heading("Informations personnelles", level=2)
         for item in personal:
-            # On tente d'afficher une information avec priorité description, content, puis subtitle
+            # On tente d'afficher une information avec priorité description,
+            # content, puis subtitle
             info = (
                 item.get("description")
                 or item.get("content")
@@ -58,7 +62,6 @@ def generate_cv(csv_file, output_file):
                 if item["title"] == "Tel"
                 else f"{info}"
             )
-            # doc.add_paragraph(para_text)
             add_custom_paragraph(
                 doc,
                 para_text,
@@ -67,8 +70,8 @@ def generate_cv(csv_file, output_file):
                 font_size=Pt(12),
                 font_color=RGBColor(0x00, 0x00, 0x00),
             )
-        # Titre du CV
 
+    # Titre du CV
     add_custom_heading(
         doc,
         title,
@@ -78,20 +81,19 @@ def generate_cv(csv_file, output_file):
         alignment=WD_ALIGN_PARAGRAPH.CENTER,
     )
 
-    # Expériences professionnelles
-    # if experiences:
-    #     doc.add_heading("Expériences professionnelles", level=2)
-    #     for exp in experiences:
-    #         dates = ""
-    #         if exp["start_date"] or exp["end_date"]:
-    #             dates = f" ({exp['start_date']} - {exp['end_date']})"
-    #         # Titre en gras suivi par l'entreprise et les dates
-    #         p = doc.add_paragraph()
-    #         run = p.add_run(f"{exp['title']} - {exp['subtitle']}{dates}")
-    #         run.bold = True
-    #         doc.add_paragraph(exp["description"])
-    # Expériences professionnelles
-    if experiences:
+    if cv_type.lower() == "debutant" and objectives:
+        objective_text = objectives[0].get("description", "").strip()
+        add_custom_paragraph(
+            doc,
+            objective_text,
+            alignment=WD_ALIGN_PARAGRAPH.CENTER,
+            space_after=Pt(12),
+            font_size=Pt(12),
+            bold=True,
+        )
+
+    # Fonctions internes pour ajouter les sections
+    def add_experiences_section(doc, experiences):
         add_custom_heading(
             doc,
             "Expériences professionnelles",
@@ -100,25 +102,31 @@ def generate_cv(csv_file, output_file):
             alignment=WD_ALIGN_PARAGRAPH.CENTER,
         )
         for exp in experiences:
-            dates = ""
-            if exp["start_date"] or exp["end_date"]:
-                dates = f" ({exp['start_date']} - {exp['end_date']})"
+            start_date = exp.get("start_date", "")
+            end_date = exp.get("end_date", "")
+            if start_date and end_date:
+                duration_str = compute_duration(start_date, end_date)
+                date_str = f" ({start_date} - {end_date}{duration_str})"
+            elif start_date:
+                date_str = f" ({start_date})"
+            else:
+                date_str = ""
             p = doc.add_paragraph()
-            run = add_styled_run(
+            add_styled_run(
                 p,
-                f"{exp['title']} - {exp['subtitle']}{dates}",
+                f"{exp.get('title')} - {exp.get('subtitle')}{date_str}",
                 font_size=Pt(14),
                 bold=True,
             )
             set_paragraph_format(p, space_after=Pt(4))
-            para_desc = add_custom_paragraph(
+            add_custom_paragraph(
                 doc,
-                exp["description"],
+                exp.get("description"),
                 alignment=WD_ALIGN_PARAGRAPH.JUSTIFY,
                 space_after=Pt(6),
             )
-    # Formation
-    if education:
+
+    def add_education_section(doc, education):
         add_custom_heading(
             doc,
             "Formation",
@@ -127,32 +135,36 @@ def generate_cv(csv_file, output_file):
             alignment=WD_ALIGN_PARAGRAPH.CENTER,
         )
         for edu in education:
-            dates = ""
-            if edu["start_date"] or edu["end_date"]:
-                dates = f" ({edu['start_date']} - {edu['end_date']})"
+            start_date = edu.get("start_date", "")
+            end_date = edu.get("end_date", "")
+            if start_date and end_date:
+                date_str = f" ({start_date} - {end_date})"
+            elif start_date:
+                date_str = f" ({start_date})"
+            else:
+                date_str = ""
             p = doc.add_paragraph()
-            run = add_styled_run(
+            add_styled_run(
                 p,
-                f"{edu['title']} - {edu['subtitle']}{dates}",
+                f"{edu.get('title')} - {edu.get('subtitle')}{date_str}",
                 font_size=Pt(14),
                 bold=True,
             )
             set_paragraph_format(p, space_after=Pt(4))
             add_custom_paragraph(
                 doc,
-                edu["description"],
+                edu.get("description"),
                 alignment=WD_ALIGN_PARAGRAPH.JUSTIFY,
                 space_after=Pt(6),
             )
-        # doc.add_heading("Formation", level=2)
-        # for edu in education:
-        #     dates = ""
-        #     if edu["start_date"] or edu["end_date"]:
-        #         dates = f" ({edu['start_date']} - {edu['end_date']})"
-        #     p = doc.add_paragraph()
-        #     run = p.add_run(f"{edu['title']} - {edu['subtitle']}{dates}")
-        #     run.bold = True
-        #     doc.add_paragraph(edu["description"])
+
+    # Ordre des sections selon le type de CV
+    if cv_type.lower() == "accompli" and experiences and education:
+        add_experiences_section(doc, experiences)
+        add_education_section(doc, education)
+    elif experiences and education:
+        add_education_section(doc, education)
+        add_experiences_section(doc, experiences)
 
     # Compétences
     if skills:
@@ -172,10 +184,6 @@ def generate_cv(csv_file, output_file):
                 space_after=Pt(4),
                 font_size=Pt(12),
             )
-        # doc.add_heading("Compétences", level=2)
-        # for skill in skills:
-        #     competence = f"- {skill['title']}: {skill['description']}"
-        #     doc.add_paragraph(competence)
 
     # Sauvegarde du document DOCX
     doc.save(output_file)
@@ -186,16 +194,13 @@ if __name__ == "__main__":
     # Fichiers CSV d'entrée
     import sys
 
-    if len(sys.argv) == 2:
-        cv_csv = sys.argv[1]
-    else:
-        print("Usage: python cv.py <cv_csv_file>")
+    if len(sys.argv) < 2:
+        print("Usage: python cv.py <cv_csv_file> [cv_type]")
         sys.exit(1)
-
+    cv_csv = sys.argv[1]
+    cv_type = sys.argv[2] if len(sys.argv) > 2 else "debutant"
     cv_output = "cv-test.docx"
-
-    # Vérification de l'existence des fichiers CSV
     if os.path.exists(cv_csv):
-        generate_cv(cv_csv, cv_output)
+        generate_cv(cv_csv, cv_output, cv_type=cv_type)
     else:
         print(f"Le fichier {cv_csv} n'existe pas.")
